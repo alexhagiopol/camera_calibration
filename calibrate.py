@@ -59,9 +59,9 @@ def undistort_image(image, camera_matrix, distortion_coefficients, save_image_pa
         # Visualize undistortion
         f, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
         ax1.imshow(image)
-        ax1.set_title('Original Image', fontsize=30)
+        ax1.set_title('Original Image', fontsize=14)
         ax2.imshow(undistorted_image)
-        ax2.set_title('Undistorted Image', fontsize=30)
+        ax2.set_title('Undistorted Image', fontsize=14)
         plt.show()
         plt.close()
 
