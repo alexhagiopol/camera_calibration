@@ -82,4 +82,4 @@ if __name__ == '__main__':
     for index, test_image_filename in enumerate(test_images):
         test_image = cv2.imread(test_image_filename)
         test_image = cv2.cvtColor(test_image, cv2.COLOR_BGR2RGB)
-        undistorted_image = undistort_image(test_image, camera_matrix, distortion_coefficients, save_image_path=test_image_filename[:-4]+'undistorted.jpg', visualize=True)
+        undistorted_image = undistort_image(test_image, camera_matrix, distortion_coefficients, visualize=True)
