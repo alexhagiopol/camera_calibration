@@ -74,8 +74,8 @@ def undistort_image(image, camera_matrix, distortion_coefficients, save_image_pa
 
 if __name__ == '__main__':
     # Example code for usage:
-    calibration_image_directory = 'example_calibration_images'
-    test_image_directory = 'example_test_images'
+    calibration_image_directory = 'datasets/example_calibration_images'
+    test_image_directory = 'datasets/example_test_images'
     (objpoints, imgpoints, shape) = compute_point_locations(calibration_image_directory, (6, 8), visualize=False)
     (camera_matrix, distortion_coefficients) = compute_calibration_matrix(objpoints, imgpoints, shape, test_image_directory)
     test_images = glob.glob(os.path.join(test_image_directory, '*.jpg'))

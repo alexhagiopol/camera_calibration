@@ -9,6 +9,11 @@ Always remember: "straight lines should be straight." ;)
 ![example1](figures/gopro_example_2.png)
 
 ### Usage
-Run the example code like so:
+Download the example dataset:
+
+    wget -O datasets.zip "https://www.dropbox.com/s/bo2wsm2e068c3az/datasets.zip?dl=1"
+    unzip datasets.zip
+    
+Run the example code:
 
     python calibrate.py
