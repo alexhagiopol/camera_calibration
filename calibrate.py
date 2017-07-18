@@ -4,6 +4,7 @@ import glob
 import os
 import pickle
 import matplotlib.pyplot as plt
+import argparse
 
 
 def compute_point_locations(calibration_image_directory, dims, visualize=False):
@@ -25,7 +26,7 @@ def compute_point_locations(calibration_image_directory, dims, visualize=False):
         if idx == 0:
             shape=img.shape
         # Find the chessboard corners
-        ret, corners = cv2.findChessboardCorners(gray, (8, 6), None)
+        ret, corners = cv2.findChessboardCorners(gray, (dims[1], dims[0]), None)
 
         # If found, add object points, image points
         if ret == True:
@@ -34,7 +35,7 @@ def compute_point_locations(calibration_image_directory, dims, visualize=False):
 
             if visualize:
                 # Draw and display the corners
-                cv2.drawChessboardCorners(img, (8, 6), corners, ret)
+                cv2.drawChessboardCorners(img, (dims[1], dims[0]), corners, ret)
                 cv2.imshow(fname, img)
                 cv2.waitKey(500)
     if visualize:
@@ -42,15 +43,23 @@ def compute_point_locations(calibration_image_directory, dims, visualize=False):
     return (objpoints, imgpoints, shape)
 
 
-def compute_calibration_matrix(objpoints, imgpoints, shape, test_image_directory):
+def compute_calibration_matrix(objpoints, imgpoints, shape, save_pickle_path=None):
     # Test undistortion on an image
     img_size = (shape[1], shape[0])
     # Do camera calibration given object points and image points
     ret, camera_matrix, distortion_coefficients, rotation_vectors, translation_vectors = cv2.calibrateCamera(objpoints, imgpoints, img_size, None, None)
+
+    if save_pickle_path:
+        # Save the camera calibration result for later use (we won't worry about rvecs / tvecs)
+        pickle_dict = {}
+        pickle_dict['camera_matrix'] = camera_matrix
+        pickle_dict['distortion_coefficients'] = distortion_coefficients
+        pickle.dump(pickle_dict, open(save_pickle_path, 'wb'))
+
     return (camera_matrix, distortion_coefficients)
 
 
-def undistort_image(image, camera_matrix, distortion_coefficients, save_image_path=None, save_pickle_path=None, visualize=False):
+def undistort_image(image, camera_matrix, distortion_coefficients, save_image_path=None, visualize=False):
     undistorted_image = cv2.undistort(image, camera_matrix, distortion_coefficients, None, camera_matrix)
     if save_image_path:
         cv2.imwrite(save_image_path,undistorted_image)
@@ -65,21 +74,22 @@ def undistort_image(image, camera_matrix, distortion_coefficients, save_image_pa
         plt.show()
         plt.close()
 
-    if save_pickle_path:
-        # Save the camera calibration result for later use (we won't worry about rvecs / tvecs)
-        dist_pickle = {}
-        dist_pickle['mtx'] = camera_matrix
-        dist_pickle['dist'] = distortion_coefficients
-        pickle.dump( dist_pickle, open( save_pickle_path, 'wb' ) )
 
 if __name__ == '__main__':
-    # Example code for usage:
-    calibration_image_directory = 'datasets/example_calibration_images'
-    test_image_directory = 'datasets/example_test_images'
-    (objpoints, imgpoints, shape) = compute_point_locations(calibration_image_directory, (6, 8), visualize=False)
-    (camera_matrix, distortion_coefficients) = compute_calibration_matrix(objpoints, imgpoints, shape, test_image_directory)
-    test_images = glob.glob(os.path.join(test_image_directory, '*.jpg'))
-    for index, test_image_filename in enumerate(test_images):
-        test_image = cv2.imread(test_image_filename)
-        test_image = cv2.cvtColor(test_image, cv2.COLOR_BGR2RGB)
-        undistorted_image = undistort_image(test_image, camera_matrix, distortion_coefficients, visualize=True)
+    parser = argparse.ArgumentParser(description='Calibrate camera given chessboard images')
+    parser.add_argument('--chessboard-height', '-ch', dest='height', type=int, required=True, help='Required int: Height of chessboard used in calibration.' )
+    parser.add_argument('--chessboard-width', '-cw', dest='width', type=int, required=True, help='Required int: Width of chessboard used in calibration.' )
+    parser.add_argument('--calibration-image-dir', '-cd', dest='calibration_dir', type=str, required=True, help='Required str: Directory containing chessboard images for calibration.' )
+    parser.add_argument('--test-image-dir', '-td', dest='test_dir', type=str, required=False, default=None, help='Optional str: Directory containing test images for undistortion visualization.' )
+    parser.add_argument('--save-pickle-path', '-p', dest='pickle_path', type=str, required=False, default=None, help='Optional str: Path of pickle file in which to save camera matrix and distortion coeffs.' )
+    args = parser.parse_args()
+
+    (objpoints, imgpoints, shape) = compute_point_locations(args.calibration_dir, (args.height, args.width), visualize=False)
+    (camera_matrix, distortion_coefficients) = compute_calibration_matrix(objpoints, imgpoints, shape, save_pickle_path=args.pickle_path)
+
+    if args.test_dir:
+        test_images = glob.glob(os.path.join(args.test_dir, '*.jpg'))
+        for index, test_image_filename in enumerate(test_images):
+            test_image = cv2.imread(test_image_filename)
+            test_image = cv2.cvtColor(test_image, cv2.COLOR_BGR2RGB)
+            undistorted_image = undistort_image(test_image, camera_matrix, distortion_coefficients, visualize=True)
