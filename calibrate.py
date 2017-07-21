@@ -73,6 +73,7 @@ def undistort_image(image, camera_matrix, distortion_coefficients, save_image_pa
         ax2.set_title('Undistorted Image', fontsize=14)
         plt.show()
         plt.close()
+    return undistorted_image
 
 
 if __name__ == '__main__':
