@@ -50,6 +50,7 @@ def compute_calibration_matrix(objpoints, imgpoints, shape, save_pickle_path=Non
     ret, camera_matrix, distortion_coefficients, rotation_vectors, translation_vectors = cv2.calibrateCamera(objpoints, imgpoints, img_size, None, None)
 
     if save_pickle_path:
+        assert (os.path.isfile(save_pickle_path))
         # Save the camera calibration result for later use (we won't worry about rvecs / tvecs)
         pickle_dict = {}
         pickle_dict['camera_matrix'] = camera_matrix
@@ -84,11 +85,11 @@ if __name__ == '__main__':
     parser.add_argument('--test-image-dir', '-td', dest='test_dir', type=str, required=False, default=None, help='Optional str: Directory containing test images for undistortion visualization.' )
     parser.add_argument('--save-pickle-path', '-p', dest='pickle_path', type=str, required=False, default=None, help='Optional str: Path of pickle file in which to save camera matrix and distortion coeffs.' )
     args = parser.parse_args()
-
+    assert(os.path.exists(args.calibration_dir))
     (objpoints, imgpoints, shape) = compute_point_locations(args.calibration_dir, (args.height, args.width), visualize=False)
     (camera_matrix, distortion_coefficients) = compute_calibration_matrix(objpoints, imgpoints, shape, save_pickle_path=args.pickle_path)
-
     if args.test_dir:
+        assert (os.path.exists(args.test_dir))
         test_images = glob.glob(os.path.join(args.test_dir, '*.jpg'))
         for index, test_image_filename in enumerate(test_images):
             test_image = cv2.imread(test_image_filename)
